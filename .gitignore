@@ -1,0 +1,8 @@
+.env
+.cache/
+__pycache__/
+*.pyc
+*.egg-info/
+venv/
+.venv/
+claude_desktop_config.json

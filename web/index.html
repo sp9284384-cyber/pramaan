@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pramaan: health claim evidence checker</title>
+<style>
+  :root { --bg:#fafafa; --fg:#1d1d1f; --muted:#6b6b72; --card:#fff; --line:#e2e2e7; --ok:#1a7f4b; --bad:#b3261e; --warn:#9a6700; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111214; --fg:#ececef; --muted:#9a9aa3; --card:#1a1b1e; --line:#2c2d32; --ok:#4cc38a; --bad:#ff7b72; --warn:#e3b341; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:960px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { margin:0 0 4px; font-size:28px; } .sub { color:var(--muted); margin:0 0 20px; }
+  .row { display:flex; gap:8px; } input { flex:1; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  button { padding:12px 18px; font-size:16px; border:0; border-radius:8px; background:#2f6fed; color:#fff; cursor:pointer; } button:disabled { opacity:.6; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-top:16px; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; border:1px solid var(--line); font-size:13px; }
+  .conflict,.preclinical_only_support { color:var(--warn); } .supported { color:var(--ok); } .opposed { color:var(--bad); } .insufficient { color:var(--muted); }
+  .muted { color:var(--muted); font-size:14px; }
+  .wrap { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:14px; } th,td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .supports { color:var(--ok); font-weight:600; } .opposes { color:var(--bad); font-weight:600; } em { color:var(--muted); }
+  a { color:#2f6fed; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Pramaan</h1>
+  <p class="sub">Type a health claim in English or Hinglish. See what the evidence labels and where sources disagree.</p>
+  <div class="row">
+    <input id="claim" maxlength="500" placeholder="e.g. haldi se sugar control hoti hai" aria-label="Health claim">
+    <button id="go">Check</button>
+  </div>
+  <p id="status" class="muted" role="status"></p>
+  <div id="out"></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
+const STATUS = {
+  conflict: "Credible sources conflict",
+  supported: "Supported by non-animal sources in the visible text",
+  opposed: "Opposed by non-animal sources in the visible text",
+  preclinical_only_support: "Support comes only from animal or lab studies",
+  insufficient: "Not enough in the visible text to judge"
+};
+async function run() {
+  const claim = $("claim").value.trim();
+  if (!claim) return;
+  $("go").disabled = true; $("status").textContent = "Checking..."; $("out").replaceChildren();
+  try {
+    const r = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ claim }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "request failed");
+    render(d); $("status").textContent = "";
+  } catch (e) { $("status").textContent = "Error: " + e.message; }
+  $("go").disabled = false;
+}
+function render(d) {
+  const out = $("out"), s = d.summary, c = d.claim;
+  const top = el("div", undefined, "card");
+  top.append(el("div", STATUS[s.status] || s.status, "pill " + s.status));
+  top.append(el("p", "Claim understood as: " + c.claim_en));
+  top.append(el("p", `Sources: ${s.n_total} | supports ${s.supports} | opposes ${s.opposes} | insufficient ${s.insufficient} | design not visible ${d.unclassified}`, "muted"));
+  top.append(el("p", "Searched: " + c.scholar_queries.join("; ") + (c.llm_used ? "" : "  (no LLM key: claim used as typed)"), "muted"));
+  out.append(top);
+  const card = el("div", undefined, "card wrap"), t = el("table"), h = el("tr");
+  ["Source", "Study design", "Stance", "Quoted evidence", "Cited"].forEach(x => h.append(el("th", x)));
+  t.append(h);
+  d.sources.forEach(x => {
+    const tr = el("tr"), td = el("td");
+    if (/^https?:\/\//.test(x.link)) { const a = el("a", x.title); a.href = x.link; a.target = "_blank"; a.rel = "noopener noreferrer"; td.append(a); } else td.textContent = x.title;
+    tr.append(td);
+    tr.append(el("td", x.label + (x.flags.length ? " (" + x.flags.join(", ") + ")" : "")));
+    tr.append(el("td", x.stance + (x.ungrounded ? " *" : ""), x.stance));
+    const ev = el("td"); ev.append(el("em", x.evidence || "-")); tr.append(ev);
+    tr.append(el("td", String(x.cited_by)));
+    t.append(tr);
+  });
+  card.append(t);
+  card.append(el("p", "* a stance without a verifiable quote was downgraded to insufficient.", "muted"));
+  out.append(card);
+  out.append(el("p", d.disclaimer, "muted"));
+}
+$("go").addEventListener("click", run);
+$("claim").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+</script>
+</body>
+</html>

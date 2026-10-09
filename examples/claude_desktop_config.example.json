@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "pramaan": {
+      "command": "python",
+      "args": ["-m", "evidence_tools.mcp_server"],
+      "env": {
+        "SERPAPI_API_KEY": "PASTE_YOUR_KEY_HERE",
+        "GEMINI_API_KEY": "PASTE_YOUR_KEY_HERE"
+      }
+    }
+  }
+}

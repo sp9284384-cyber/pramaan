@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pramaan-evidence"
+version = "0.1.0"
+description = "Evidence-aware health claim checker for AI agents, built on SerpApi"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["google-genai", "mcp>=1.2"]
+
+[project.scripts]
+pramaan = "evidence_tools.cli:main"
+pramaan-mcp = "evidence_tools.mcp_server:main"
+pramaan-web = "evidence_tools.web:main"
+
+[tool.setuptools.packages.find]
+include = ["evidence_tools*"]
