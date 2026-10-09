@@ -3,86 +3,1020 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pramaan: health claim evidence checker</title>
+<title>Pramaan · प्रमाण | Evidence-Aware Health Claim Checker for AI Agents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#fafafa; --fg:#1d1d1f; --muted:#6b6b72; --card:#fff; --line:#e2e2e7; --ok:#1a7f4b; --bad:#b3261e; --warn:#9a6700; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#111214; --fg:#ececef; --muted:#9a9aa3; --card:#1a1b1e; --line:#2c2d32; --ok:#4cc38a; --bad:#ff7b72; --warn:#e3b341; } }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  main { max-width:960px; margin:0 auto; padding:24px 16px 48px; }
-  h1 { margin:0 0 4px; font-size:28px; } .sub { color:var(--muted); margin:0 0 20px; }
-  .row { display:flex; gap:8px; } input { flex:1; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
-  button { padding:12px 18px; font-size:16px; border:0; border-radius:8px; background:#2f6fed; color:#fff; cursor:pointer; } button:disabled { opacity:.6; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-top:16px; }
-  .pill { display:inline-block; padding:2px 10px; border-radius:999px; border:1px solid var(--line); font-size:13px; }
-  .conflict,.preclinical_only_support { color:var(--warn); } .supported { color:var(--ok); } .opposed { color:var(--bad); } .insufficient { color:var(--muted); }
-  .muted { color:var(--muted); font-size:14px; }
-  .wrap { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-size:14px; } th,td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
-  .supports { color:var(--ok); font-weight:600; } .opposes { color:var(--bad); font-weight:600; } em { color:var(--muted); }
-  a { color:#2f6fed; }
+  :root {
+    --bg: #0c0e14;
+    --card: #151822;
+    --card-hover: #1b202e;
+    --border: #262c3e;
+    --border-highlight: #3c4562;
+    --fg: #f1f3f9;
+    --muted: #8b93a8;
+    --faint: #4e5569;
+    
+    --brand: #3b82f6;
+    --brand-glow: rgba(59, 130, 246, 0.25);
+    
+    --support: #10b981;
+    --support-bg: rgba(16, 185, 129, 0.12);
+    --support-border: rgba(16, 185, 129, 0.3);
+    
+    --oppose: #f43f5e;
+    --oppose-bg: rgba(244, 63, 94, 0.12);
+    --oppose-border: rgba(244, 63, 94, 0.3);
+    
+    --conflict: #f59e0b;
+    --conflict-bg: rgba(245, 158, 11, 0.14);
+    --conflict-border: rgba(245, 158, 11, 0.35);
+    
+    --neutral: #94a3b8;
+    --neutral-bg: rgba(148, 163, 184, 0.1);
+    
+    --purple: #a855f7;
+    --purple-bg: rgba(168, 85, 247, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  /* Top Hackathon Banner */
+  .hackathon-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(59,130,246,0.12), rgba(168,85,247,0.12));
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hackathon-bar .tag {
+    background: #1e2538;
+    color: #60a5fa;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .hackathon-bar .meta {
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Hero Header */
+  .hero {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .hero-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero .hindi {
+    font-size: 26px;
+    color: #60a5fa;
+    font-weight: 600;
+    padding: 2px 10px;
+    background: rgba(59, 130, 246, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+  }
+  .hero p.tagline {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 780px;
+    margin: 0 auto 16px;
+  }
+
+  /* Architecture Breadcrumb */
+  .pipeline-flow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--faint);
+    margin-bottom: 24px;
+  }
+  .pipeline-step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 8px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .pipeline-step.active {
+    border-color: var(--brand);
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.1);
+  }
+  .pipeline-arrow {
+    color: var(--faint);
+  }
+
+  /* Search Card */
+  .search-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    margin-bottom: 20px;
+  }
+  .input-group {
+    display: flex;
+    gap: 12px;
+  }
+  .input-wrapper {
+    position: relative;
+    flex: 1;
+  }
+  input#claim {
+    width: 100%;
+    background: #090b10;
+    border: 1px solid var(--border-highlight);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 16px;
+    color: #fff;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  input#claim:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-glow);
+  }
+  button#go {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0 28px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  button#go:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--brand-glow);
+  }
+  button#go:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Sample Presets */
+  .samples {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  .samples-label {
+    color: var(--faint);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .chip {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+  }
+  .chip:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .chip .badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  .chip .badge-hinglish { background: #312e81; color: #a5b4fc; }
+  .chip .badge-conflict { background: #78350f; color: #fde68a; }
+  .chip .badge-rct { background: #064e3b; color: #a7f3d0; }
+  .chip .badge-myth { background: #831843; color: #fbcfe8; }
+
+  /* Loading State */
+  .loading-box {
+    display: none;
+    text-align: center;
+    padding: 40px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: var(--brand);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 15px; color: var(--fg); font-weight: 600; }
+  .loading-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Results Section */
+  #out { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Hero Verdict Banner */
+  .verdict-banner {
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    border: 1px solid;
+    position: relative;
+    overflow: hidden;
+  }
+  .verdict-banner.conflict {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(20, 24, 33, 0.9));
+    border-color: var(--conflict-border);
+  }
+  .verdict-banner.supported {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(20, 24, 33, 0.9));
+    border-color: var(--support-border);
+  }
+  .verdict-banner.opposed {
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.12), rgba(20, 24, 33, 0.9));
+    border-color: var(--oppose-border);
+  }
+  .verdict-banner.preclinical_only_support {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.12), rgba(20, 24, 33, 0.9));
+    border-color: rgba(217, 119, 6, 0.35);
+  }
+  .verdict-banner.insufficient {
+    background: linear-gradient(135deg, rgba(148, 163, 184, 0.1), rgba(20, 24, 33, 0.9));
+    border-color: var(--border-highlight);
+  }
+
+  .verdict-main { flex: 1; }
+  .verdict-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  .verdict-banner.conflict .verdict-tag { background: var(--conflict-bg); color: #fbbf24; border: 1px solid var(--conflict-border); }
+  .verdict-banner.supported .verdict-tag { background: var(--support-bg); color: #34d399; border: 1px solid var(--support-border); }
+  .verdict-banner.opposed .verdict-tag { background: var(--oppose-bg); color: #fb7185; border: 1px solid var(--oppose-border); }
+  .verdict-banner.preclinical_only_support .verdict-tag { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(217, 119, 6, 0.4); }
+  .verdict-banner.insufficient .verdict-tag { background: var(--neutral-bg); color: #cbd5e1; border: 1px solid var(--border-highlight); }
+
+  .verdict-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .verdict-desc {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 650px;
+  }
+
+  /* Grid of Detail Cards */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 16px;
+  }
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .metric-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .metric-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+  }
+  .metric-pill {
+    font-size: 11px;
+    background: #1e2538;
+    color: #93c5fd;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .norm-item {
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .norm-item .lbl { color: var(--muted); font-size: 12px; }
+  .norm-item .val { color: #fff; font-weight: 600; font-size: 14px; }
+  .query-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .q-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: #090b10;
+    border: 1px solid var(--border-highlight);
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: #93c5fd;
+  }
+
+  /* Stance Counts Bar */
+  .breakdown-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .b-stat {
+    flex: 1;
+    background: #090b10;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+  .b-stat .num { font-size: 20px; font-weight: 800; }
+  .b-stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 600; }
+  .b-stat.sup .num { color: #34d399; }
+  .b-stat.opp .num { color: #fb7185; }
+  .b-stat.ins .num { color: var(--neutral); }
+
+  .stat-progress {
+    height: 8px;
+    background: #090b10;
+    border-radius: 999px;
+    display: flex;
+    overflow: hidden;
+    gap: 2px;
+  }
+  .stat-bar-sup { background: #10b981; }
+  .stat-bar-opp { background: #f43f5e; }
+  .stat-bar-ins { background: #475569; }
+
+  /* Quality Badge */
+  .quality-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .tier-badge {
+    background: var(--purple-bg);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #d8b4fe;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .unclassified-callout {
+    font-size: 12px;
+    color: var(--muted);
+    background: #090b10;
+    border: 1px solid var(--border);
+    padding: 10px;
+    border-radius: 8px;
+    line-height: 1.4;
+  }
+
+  /* Sources Table Card */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .table-header-bar {
+    padding: 16px 20px;
+    background: #11141d;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .table-header-title {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+  }
+  th {
+    background: #0f1219;
+    color: var(--muted);
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td {
+    background: var(--card-hover);
+  }
+
+  .source-title-link {
+    color: #e2e8f0;
+    font-weight: 600;
+    text-decoration: none;
+    line-height: 1.4;
+    display: block;
+    margin-bottom: 4px;
+    transition: color 0.15s;
+  }
+  .source-title-link:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+  }
+  .source-venue {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  /* Pills */
+  .badge-tier {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .pill-tier {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .pill-tier.systematic_review { background: rgba(168,85,247,0.15); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+  .pill-tier.rct { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .pill-tier.observational_or_pilot { background: rgba(14,165,233,0.15); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.3); }
+  .pill-tier.preclinical { background: rgba(245,158,11,0.15); color: #fde68a; border: 1px solid rgba(245,158,11,0.3); }
+  .pill-tier.narrative_review { background: rgba(20,184,166,0.15); color: #5eead4; border: 1px solid rgba(20,184,166,0.3); }
+  .pill-tier.unclassified { background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+
+  .basis-badge {
+    font-size: 10px;
+    color: var(--faint);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .pill-stance {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .pill-stance.supports { background: var(--support-bg); color: #34d399; border: 1px solid var(--support-border); }
+  .pill-stance.opposes { background: var(--oppose-bg); color: #fb7185; border: 1px solid var(--oppose-border); }
+  .pill-stance.insufficient { background: var(--neutral-bg); color: #94a3b8; border: 1px solid rgba(148,163,184,0.2); }
+
+  .evidence-box {
+    background: #090b10;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--brand);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: #e2e8f0;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .evidence-box.empty {
+    border-left-color: var(--border);
+    color: var(--faint);
+    font-style: normal;
+  }
+  .downgraded-tag {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 10px;
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-style: normal;
+  }
+
+  .cite-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: #090b10;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  /* Footer Note */
+  .footer-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-box a { color: #60a5fa; text-decoration: none; }
+  .footer-box a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 28px; }
+    .input-group { flex-direction: column; }
+    button#go { padding: 14px; justify-content: center; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>Pramaan</h1>
-  <p class="sub">Type a health claim in English or Hinglish. See what the evidence labels and where sources disagree.</p>
-  <div class="row">
-    <input id="claim" maxlength="500" placeholder="e.g. haldi se sugar control hoti hai" aria-label="Health claim">
-    <button id="go">Check</button>
+
+<div class="container">
+
+  <!-- Hackathon Track Header Ribbon -->
+  <div class="hackathon-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="tag">SerpApi India Hackathon 2026</span>
+      <span style="font-weight:600; color:#fff;">Track: Open-Source Integrations</span>
+    </div>
+    <div class="meta">
+      <span>Retrieval: <strong>Google Scholar via SerpApi</strong></span>
+      <span>•</span>
+      <span>LLM: <strong>Gemini</strong></span>
+      <span>•</span>
+      <span>Transport: <strong>MCP Server + REST</strong></span>
+    </div>
   </div>
-  <p id="status" class="muted" role="status"></p>
+
+  <!-- Hero Title -->
+  <div class="hero">
+    <div class="hero-logo">
+      <h1>Pramaan</h1>
+      <span class="hindi">प्रमाण</span>
+    </div>
+    <p class="tagline">
+      An evidence-aware health claim checker for AI agents. Ask about home remedies or viral WhatsApp forwards in <strong>English</strong> or <strong>Hinglish</strong>, and discover what peer-reviewed science actually proves — and where it disagrees.
+    </p>
+
+    <!-- Visual Architecture Breadcrumbs -->
+    <div class="pipeline-flow">
+      <div class="pipeline-step active">1. Claim Input</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step active">2. Gemini Normalization</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step active">3. SerpApi Scholar Retrieval</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step active">4. Study-Design Classifier</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step active">5. Grounded Stance Quoting</div>
+      <span class="pipeline-arrow">&rarr;</span>
+      <div class="pipeline-step active">6. Conflict Synthesis</div>
+    </div>
+  </div>
+
+  <!-- Search Card -->
+  <div class="search-card">
+    <div class="input-group">
+      <div class="input-wrapper">
+        <input id="claim" maxlength="500" placeholder="e.g. haldi se sugar control hoti hai or garlic lowers blood pressure..." aria-label="Health claim">
+      </div>
+      <button id="go">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Check Evidence
+      </button>
+    </div>
+
+    <!-- Quick-Pick Benchmark Presets -->
+    <div class="samples">
+      <span class="samples-label">Evaluator Presets:</span>
+      <button class="chip" data-query="haldi se sugar control hoti hai">
+        <span class="badge badge-hinglish">Hinglish</span>
+        haldi se sugar control hoti hai
+      </button>
+      <button class="chip" data-query="garlic lowers blood pressure">
+        <span class="badge badge-conflict">Conflict</span>
+        garlic lowers blood pressure
+      </button>
+      <button class="chip" data-query="honey relieves children's cough">
+        <span class="badge badge-rct">High Support</span>
+        honey relieves children's cough
+      </button>
+      <button class="chip" data-query="apple cider vinegar causes weight loss">
+        <span class="badge badge-myth">Weak/Pilot</span>
+        apple cider vinegar causes weight loss
+      </button>
+      <button class="chip" data-query="karela juice se sugar kam hoti hai">
+        <span class="badge badge-hinglish">Hinglish</span>
+        karela juice se sugar kam hoti hai
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Animation -->
+  <div id="loader" class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">Retrieving Evidence via SerpApi & Analyzing Stances...</div>
+    <div class="loading-sub">Normalizing claim &rarr; querying Google Scholar &rarr; rule classification &rarr; extracting verbatim quotes</div>
+  </div>
+
+  <!-- Dynamic Results Target -->
   <div id="out"></div>
-</main>
+
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
-const el = (tag, text, cls) => { const n = document.createElement(tag); if (text !== undefined) n.textContent = text; if (cls) n.className = cls; return n; };
-const STATUS = {
-  conflict: "Credible sources conflict",
-  supported: "Supported by non-animal sources in the visible text",
-  opposed: "Opposed by non-animal sources in the visible text",
-  preclinical_only_support: "Support comes only from animal or lab studies",
-  insufficient: "Not enough in the visible text to judge"
+
+const STATUS_CONFIG = {
+  conflict: {
+    title: "Credible Human Sources Conflict",
+    tag: "⚡ Scientific Disagreement Detected",
+    desc: "Rigorous published human studies directly contradict each other on this claim. Pramaan reports genuine scientific division rather than asserting a false single verdict."
+  },
+  supported: {
+    title: "Supported by Non-Animal Clinical Evidence",
+    tag: "✓ Supported by Evidence",
+    desc: "Identified peer-reviewed human studies reporting outcomes supporting this claim in their published findings."
+  },
+  opposed: {
+    title: "Opposed by Clinical Evidence",
+    tag: "✗ Contradicted / No Effect Reported",
+    desc: "Published studies report contradictory findings or fail to observe a statistically significant therapeutic effect."
+  },
+  preclinical_only_support: {
+    title: "Preclinical Support Only (Animal / In Vitro)",
+    tag: "⚠️ Lab/Animal Evidence Only",
+    desc: "Support exists only in rodent, cell-culture, or test-tube models. Animal mechanisms do not constitute verified clinical efficacy in humans."
+  },
+  insufficient: {
+    title: "Insufficient Evidence in Visible Literature",
+    tag: "⚪ Inconclusive / Insufficient Data",
+    desc: "The retrieved abstracts and titles do not contain sufficient outcome data to confirm or refute the therapeutic claim."
+  }
 };
-async function run() {
-  const claim = $("claim").value.trim();
+
+const TIER_NAMES = {
+  systematic_review: "Systematic Review / Meta-Analysis",
+  rct: "Randomized Controlled Trial (RCT)",
+  observational_or_pilot: "Observational / Pilot Trial",
+  preclinical: "Preclinical (Animal / In Vitro)",
+  narrative_review: "Narrative Review",
+  book: "Academic Book / Monograph",
+  unclassified: "Unclassified (Design Not Visible)"
+};
+
+async function executeCheck(claimText) {
+  const claim = (claimText || $("claim").value).trim();
   if (!claim) return;
-  $("go").disabled = true; $("status").textContent = "Checking..."; $("out").replaceChildren();
+  $("claim").value = claim;
+
+  $("go").disabled = true;
+  $("loader").style.display = "block";
+  $("out").replaceChildren();
+
   try {
-    const r = await fetch("/api/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ claim }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || "request failed");
-    render(d); $("status").textContent = "";
-  } catch (e) { $("status").textContent = "Error: " + e.message; }
-  $("go").disabled = false;
+    const res = await fetch("/api/check", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ claim })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Request failed");
+    renderResults(data);
+  } catch (err) {
+    const errCard = document.createElement("div");
+    errCard.className = "search-card";
+    errCard.style.borderColor = "var(--oppose-border)";
+    errCard.innerHTML = `<h3 style="color:#fb7185; margin-bottom:6px;">Error Processing Claim</h3><p style="color:var(--muted);">${err.message}</p>`;
+    $("out").appendChild(errCard);
+  } finally {
+    $("loader").style.display = "none";
+    $("go").disabled = false;
+  }
 }
-function render(d) {
-  const out = $("out"), s = d.summary, c = d.claim;
-  const top = el("div", undefined, "card");
-  top.append(el("div", STATUS[s.status] || s.status, "pill " + s.status));
-  top.append(el("p", "Claim understood as: " + c.claim_en));
-  top.append(el("p", `Sources: ${s.n_total} | supports ${s.supports} | opposes ${s.opposes} | insufficient ${s.insufficient} | design not visible ${d.unclassified}`, "muted"));
-  top.append(el("p", "Searched: " + c.scholar_queries.join("; ") + (c.llm_used ? "" : "  (no LLM key: claim used as typed)"), "muted"));
-  out.append(top);
-  const card = el("div", undefined, "card wrap"), t = el("table"), h = el("tr");
-  ["Source", "Study design", "Stance", "Quoted evidence", "Cited"].forEach(x => h.append(el("th", x)));
-  t.append(h);
-  d.sources.forEach(x => {
-    const tr = el("tr"), td = el("td");
-    if (/^https?:\/\//.test(x.link)) { const a = el("a", x.title); a.href = x.link; a.target = "_blank"; a.rel = "noopener noreferrer"; td.append(a); } else td.textContent = x.title;
-    tr.append(td);
-    tr.append(el("td", x.label + (x.flags.length ? " (" + x.flags.join(", ") + ")" : "")));
-    tr.append(el("td", x.stance + (x.ungrounded ? " *" : ""), x.stance));
-    const ev = el("td"); ev.append(el("em", x.evidence || "-")); tr.append(ev);
-    tr.append(el("td", String(x.cited_by)));
-    t.append(tr);
+
+function renderResults(d) {
+  const out = $("out");
+  const s = d.summary;
+  const c = d.claim;
+  const cfg = STATUS_CONFIG[s.status] || {
+    title: s.status,
+    tag: s.status,
+    desc: "Automated synthesis across retrieved Google Scholar literature."
+  };
+
+  // 1. Hero Verdict Banner
+  const banner = document.createElement("div");
+  banner.className = `verdict-banner ${s.status}`;
+  banner.innerHTML = `
+    <div class="verdict-main">
+      <div class="verdict-tag">${cfg.tag}</div>
+      <div class="verdict-title">${cfg.title}</div>
+      <div class="verdict-desc">${cfg.desc}</div>
+    </div>
+    <div style="text-align:right;">
+      <span style="font-size:12px; color:var(--muted);">Strongest Tier</span>
+      <div style="font-size:14px; font-weight:700; color:#fff;">${TIER_NAMES[s.strongest_supporting_tier] || "None identified"}</div>
+    </div>
+  `;
+  out.appendChild(banner);
+
+  // 2. Metrics Detail Grid
+  const grid = document.createElement("div");
+  grid.className = "metrics-grid";
+
+  // Card A: Normalization & Query Expansion
+  const cardNorm = document.createElement("div");
+  cardNorm.className = "metric-card";
+  const queriesHtml = (c.scholar_queries || []).map(q => `<span class="q-tag">"${q}"</span>`).join("");
+  cardNorm.innerHTML = `
+    <div class="metric-header">
+      <span class="metric-title">1. Claim Normalization</span>
+      <span class="metric-pill">${c.language || "English"}</span>
+    </div>
+    <div class="norm-item">
+      <div class="lbl">Original Claim:</div>
+      <div class="val" style="font-weight:500;">"${c.original}"</div>
+    </div>
+    <div class="norm-item">
+      <div class="lbl">Normalized Scientific Claim (EN):</div>
+      <div class="val" style="color:#93c5fd;">"${c.claim_en}"</div>
+    </div>
+    <div class="norm-item" style="margin-top:10px;">
+      <div class="lbl">SerpApi Scholar Queries Dispatched:</div>
+      <div class="query-tags">${queriesHtml}</div>
+    </div>
+  `;
+
+  // Card B: Evidence Breakdown
+  const cardBreakdown = document.createElement("div");
+  cardBreakdown.className = "metric-card";
+  const total = s.n_total || 1;
+  const pctSup = (s.supports / total) * 100;
+  const pctOpp = (s.opposes / total) * 100;
+  const pctIns = (s.insufficient / total) * 100;
+  cardBreakdown.innerHTML = `
+    <div class="metric-header">
+      <span class="metric-title">2. Grounded Stance Breakdown</span>
+      <span class="metric-pill">${s.n_total} Sources</span>
+    </div>
+    <div class="breakdown-row">
+      <div class="b-stat sup">
+        <div class="num">${s.supports}</div>
+        <div class="lbl">Supports</div>
+      </div>
+      <div class="b-stat opp">
+        <div class="num">${s.opposes}</div>
+        <div class="lbl">Opposes</div>
+      </div>
+      <div class="b-stat ins">
+        <div class="num">${s.insufficient}</div>
+        <div class="lbl">Insufficient</div>
+      </div>
+    </div>
+    <div class="stat-progress">
+      <div class="stat-bar-sup" style="width:${pctSup}%"></div>
+      <div class="stat-bar-opp" style="width:${pctOpp}%"></div>
+      <div class="stat-bar-ins" style="width:${pctIns}%"></div>
+    </div>
+    <div style="font-size:11px; color:var(--muted); margin-top:8px;">
+      * Stances strictly require a verbatim snippet quotation to be credited.
+    </div>
+  `;
+
+  // Card C: Study Quality & Rigor
+  const cardQuality = document.createElement("div");
+  cardQuality.className = "metric-card";
+  cardQuality.innerHTML = `
+    <div class="metric-header">
+      <span class="metric-title">3. Design Classification</span>
+      <span class="metric-pill">Transparent Rules</span>
+    </div>
+    <div class="quality-badge-row">
+      <span class="tier-badge">${TIER_NAMES[s.strongest_supporting_tier] || "Unclassified"}</span>
+    </div>
+    <div class="unclassified-callout">
+      <strong>${d.unclassified} of ${s.n_total} sources</strong> lacked visible study design in Scholar snippets. Pramaan reports them as <em>unclassified</em> rather than hallucinating a methodology.
+    </div>
+  `;
+
+  grid.appendChild(cardNorm);
+  grid.appendChild(cardBreakdown);
+  grid.appendChild(cardQuality);
+  out.appendChild(grid);
+
+  // 3. Evidence Sources Table
+  const tableCard = document.createElement("div");
+  tableCard.className = "table-card";
+
+  const rowsHtml = (d.sources || []).map((x, idx) => {
+    const basisLabel = x.basis && x.basis !== 'none' ? `via ${x.basis}` : 'snippet hidden';
+    const flagsLabel = x.flags && x.flags.length ? `· ${x.flags.join(", ")}` : '';
+    const quoteHtml = x.evidence
+      ? `<div class="evidence-box">"${x.evidence}"</div>`
+      : `<div class="evidence-box empty">No direct outcome quote identified in snippet</div>`;
+    const ungroundedHtml = x.ungrounded
+      ? `<div class="downgraded-tag">Downgraded to insufficient (ungrounded)</div>`
+      : '';
+
+    return `
+      <tr>
+        <td style="color:var(--faint); font-weight:700; width:30px;">#${idx + 1}</td>
+        <td style="min-width: 260px;">
+          <a class="source-title-link" href="${x.link || '#'}" target="_blank" rel="noopener noreferrer">${x.title}</a>
+          <div class="source-venue">${x.venue || "Academic venue unspecified"} ${x.year ? '· ' + x.year : ''}</div>
+        </td>
+        <td style="min-width: 170px;">
+          <div class="badge-tier">
+            <span class="pill-tier ${x.tier}">${x.label || x.tier}</span>
+            <span class="basis-badge">${basisLabel} ${flagsLabel}</span>
+          </div>
+        </td>
+        <td style="min-width: 110px;">
+          <span class="pill-stance ${x.stance}">${x.stance}</span>
+        </td>
+        <td style="min-width: 280px;">
+          ${quoteHtml}
+          ${ungroundedHtml}
+        </td>
+        <td style="text-align:right;">
+          <span class="cite-badge">${x.cited_by || 0}</span>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  tableCard.innerHTML = `
+    <div class="table-header-bar">
+      <div class="table-header-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Evidence Sources Retrieved via SerpApi (${(d.sources || []).length} results)
+      </div>
+      <div class="table-sub">Results cached on disk · 0 credits consumed on repeats</div>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Publication & Author</th>
+            <th>Study Design</th>
+            <th>Stance</th>
+            <th>Quoted Verbatim Evidence</th>
+            <th style="text-align:right;">Citations</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+    </div>
+  `;
+  out.appendChild(tableCard);
+
+  // 4. Disclaimer Footer
+  const footer = document.createElement("div");
+  footer.className = "footer-box";
+  footer.innerHTML = `
+    <div>
+      <strong>Not Medical Advice:</strong> ${d.disclaimer || "Pramaan labels and compares scientific evidence; it does not diagnose or prescribe treatment."}
+    </div>
+    <div>
+      <span style="color:var(--faint);">SerpApi Google Scholar Engine · Gemini 3.5 Flash-Lite</span>
+    </div>
+  `;
+  out.appendChild(footer);
+}
+
+// Event Listeners
+$("go").addEventListener("click", () => executeCheck());
+$("claim").addEventListener("keydown", e => { if (e.key === "Enter") executeCheck(); });
+
+// Quick preset chips
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const q = chip.getAttribute("data-query");
+    executeCheck(q);
   });
-  card.append(t);
-  card.append(el("p", "* a stance without a verifiable quote was downgraded to insufficient.", "muted"));
-  out.append(card);
-  out.append(el("p", d.disclaimer, "muted"));
-}
-$("go").addEventListener("click", run);
-$("claim").addEventListener("keydown", e => { if (e.key === "Enter") run(); });
+});
 </script>
+
 </body>
 </html>
