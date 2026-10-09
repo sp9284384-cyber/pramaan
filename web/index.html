@@ -703,30 +703,7 @@
       </button>
     </div>
 
-    <!-- Quick-Pick Benchmark Presets -->
-    <div class="samples">
-      <span class="samples-label">Evaluator Presets:</span>
-      <button class="chip" data-query="haldi se sugar control hoti hai">
-        <span class="badge badge-hinglish">Hinglish</span>
-        haldi se sugar control hoti hai
-      </button>
-      <button class="chip" data-query="garlic lowers blood pressure">
-        <span class="badge badge-conflict">Conflict</span>
-        garlic lowers blood pressure
-      </button>
-      <button class="chip" data-query="honey relieves children's cough">
-        <span class="badge badge-rct">High Support</span>
-        honey relieves children's cough
-      </button>
-      <button class="chip" data-query="apple cider vinegar causes weight loss">
-        <span class="badge badge-myth">Weak/Pilot</span>
-        apple cider vinegar causes weight loss
-      </button>
-      <button class="chip" data-query="karela juice se sugar kam hoti hai">
-        <span class="badge badge-hinglish">Hinglish</span>
-        karela juice se sugar kam hoti hai
-      </button>
-    </div>
+
   </div>
 
   <!-- Loading Animation -->
@@ -1009,13 +986,7 @@ function renderResults(d) {
 $("go").addEventListener("click", () => executeCheck());
 $("claim").addEventListener("keydown", e => { if (e.key === "Enter") executeCheck(); });
 
-// Quick preset chips
-document.querySelectorAll(".chip").forEach(chip => {
-  chip.addEventListener("click", () => {
-    const q = chip.getAttribute("data-query");
-    executeCheck(q);
-  });
-});
+
 </script>
 
 </body>
