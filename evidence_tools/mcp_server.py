@@ -40,6 +40,14 @@ def label_study_design(title: str, snippet: str = "", venue: str = "",
 
 
 def main():
+    import sys
+    print(
+        "Pramaan MCP server ready (stdio transport).\n"
+        "Tools exposed: check_health_claim · label_study_design\n"
+        "Waiting for an MCP client (Claude Desktop, MCP Inspector, ...)...",
+        file=sys.stderr,
+        flush=True,
+    )
     mcp.run()
 
 
