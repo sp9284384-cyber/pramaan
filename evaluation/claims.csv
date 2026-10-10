@@ -1,21 +1,21 @@
 id,pair,claim,language,expected_status,notes
-T01-en,T01,Turmeric lowers blood sugar.,en,,
-T01-hi,T01,haldi se sugar control hoti hai,hinglish,,
-T02-en,T02,Vitamin D supplements prevent COVID-19.,en,,
-T02-hi,T02,vitamin D lene se covid nahi hota,hinglish,,
-T03-en,T03,Apple cider vinegar causes weight loss.,en,,
-T03-hi,T03,apple cider vinegar peene se weight loss hota hai,hinglish,,
-T04-en,T04,Garlic lowers blood pressure.,en,,
-T04-hi,T04,lahsun khane se BP kam hota hai,hinglish,,
-T05-en,T05,Cinnamon improves blood sugar control.,en,,
-T05-hi,T05,dalchini se sugar control hoti hai,hinglish,,
-T06-en,T06,Honey relieves children's cough.,en,,
-T06-hi,T06,shahad se bachon ki khansi theek ho jati hai,hinglish,,
-T07-en,T07,Ginger reduces nausea in pregnancy.,en,,
-T07-hi,T07,adrak se pregnancy mein ulti kam hoti hai,hinglish,,
-T08-en,T08,Fenugreek seeds improve blood sugar control.,en,,
-T08-hi,T08,methi dana se sugar control hoti hai,hinglish,,
-T09-en,T09,Bitter gourd juice lowers blood sugar.,en,,
-T09-hi,T09,karela juice se sugar kam hoti hai,hinglish,,
-T10-en,T10,Tulsi boosts immunity.,en,,
-T10-hi,T10,tulsi se immunity badhti hai,hinglish,,
+T01-en,T01,Turmeric lowers blood sugar.,en,supported,Multiple RCTs and meta-analyses confirm curcumin lowers fasting glucose in T2D patients
+T01-hi,T01,haldi se sugar control hoti hai,hinglish,supported,Same evidence as T01-en; Hinglish translation of the same claim
+T02-en,T02,Vitamin D supplements prevent COVID-19.,en,conflict,Early observational studies suggested protection; later large RCTs (VITAL-COVID etc.) showed no significant prevention benefit
+T02-hi,T02,vitamin D lene se covid nahi hota,hinglish,conflict,Same contested evidence as T02-en
+T03-en,T03,Apple cider vinegar causes weight loss.,en,insufficient,Evidence limited to small pilot trials (<30 subjects); no large RCT confirms clinically meaningful weight loss
+T03-hi,T03,apple cider vinegar peene se weight loss hota hai,hinglish,insufficient,Same weak-evidence basis as T03-en
+T04-en,T04,Garlic lowers blood pressure.,en,conflict,Cochrane review 2012 found modest effect; several RCTs show no effect; AHA does not endorse garlic as treatment
+T04-hi,T04,lahsun khane se BP kam hota hai,hinglish,conflict,Same conflicting evidence as T04-en
+T05-en,T05,Cinnamon improves blood sugar control.,en,conflict,Some RCTs show HbA1c improvement; ADA systematic review found inconsistent results across trials
+T05-hi,T05,dalchini se sugar control hoti hai,hinglish,conflict,Same inconsistent evidence as T05-en
+T06-en,T06,Honey relieves children's cough.,en,supported,Cochrane/systematic reviews consistently find honey superior to placebo and comparable to dextromethorphan
+T06-hi,T06,shahad se bachon ki khansi theek ho jati hai,hinglish,supported,Same strong evidence as T06-en
+T07-en,T07,Ginger reduces nausea in pregnancy.,en,supported,Multiple RCTs confirm ginger is safe and effective for nausea/vomiting in first trimester
+T07-hi,T07,adrak se pregnancy mein ulti kam hoti hai,hinglish,supported,Same strong evidence as T07-en
+T08-en,T08,Fenugreek seeds improve blood sugar control.,en,supported,Several small RCTs show fasting glucose reduction; evidence is consistent though studies are small
+T08-hi,T08,methi dana se sugar control hoti hai,hinglish,supported,Same evidence as T08-en
+T09-en,T09,Bitter gourd juice lowers blood sugar.,en,supported,RCTs show significant fasting glucose reduction; widely studied in South Asian populations
+T09-hi,T09,karela juice se sugar kam hoti hai,hinglish,supported,Same evidence as T09-en
+T10-en,T10,Tulsi boosts immunity.,en,preclinical_only_support,Immunomodulatory effects shown in animal/in-vitro studies; no robust human RCT on immunity endpoints
+T10-hi,T10,tulsi se immunity badhti hai,hinglish,preclinical_only_support,Same lack of clinical human trial evidence as T10-en
